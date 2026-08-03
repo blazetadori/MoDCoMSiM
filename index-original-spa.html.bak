@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MoDCoMSiM – Modulation and Coding Techniques Simulator</title>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ═══════════ AUTH SCREEN (Sign In / Sign Up) ═══════════ -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div>
+        <div class="auth-logo">
+          <div class="logo-icon">C2</div>
+          <div>
+            <div class="auth-logo-text">MoDCoMSiM</div>
+            <div class="auth-logo-sub">MODULATION & CODING TECHNIQUES SIMULATOR</div>
+          </div>
+        </div>
+        <div class="auth-tagline" style="margin-top:28px;">Interactive labs for <span>digital communications</span>, built for the classroom.</div>
+      </div>
+      <div class="auth-features">
+        <div class="auth-feature"><div class="dot"></div>Live oscilloscope-style waveform rendering for every modulation & coding scheme</div>
+        <div class="auth-feature"><div class="dot"></div>Student accounts track progress; Admin accounts manage the module set</div>
+        <div class="auth-feature"><div class="dot"></div>Character coding, PCM, line coding, ASK/FSK/BPSK/QPSK/QAM, AWGN & BER, and more</div>
+      </div>
+      <div class="auth-scope">© MoDCoMSiM · Accounts stored locally in this browser</div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabLoginBtn" onclick="authSwitchTab('login')">SIGN IN</div>
+        <div class="auth-tab" id="tabSignupBtn" onclick="authSwitchTab('signup')">SIGN UP</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form class="auth-form active" id="loginForm" onsubmit="return handleLogin(event)">
+        <div>
+          <div class="auth-h">Welcome back</div>
+          <div class="auth-sub">Sign in to continue your session.</div>
+        </div>
+        <div class="auth-msg" id="loginMsg"></div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="text" id="loginEmail" placeholder="you@school.edu" autocomplete="username"/>
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <div class="auth-pw-toggle">
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+            <span class="auth-pw-eye" onclick="togglePw('loginPassword',this)">SHOW</span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">SIGN IN →</button>
+
+        <div class="auth-demo">
+          <div class="auth-demo-label">Try a sample account</div>
+          <div class="auth-demo-row">
+            <div class="auth-demo-btn admin" onclick="fillDemo('admin')">
+              <span class="role">ADMIN</span>
+              <span class="cred">admin1 / admin123</span>
+            </div>
+            <div class="auth-demo-btn student" onclick="fillDemo('student')">
+              <span class="role">STUDENT</span>
+              <span class="cred">student@modcomsim.edu / Student123!</span>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- SIGNUP FORM -->
+      <form class="auth-form" id="signupForm" onsubmit="return handleSignup(event)">
+        <div>
+          <div class="auth-h">Create an account</div>
+          <div class="auth-sub">Register to start using the simulator.</div>
+        </div>
+        <div class="auth-msg" id="signupMsg"></div>
+        <div class="auth-field">
+          <label>Full name</label>
+          <input type="text" id="signupName" placeholder="Juan Dela Cruz" autocomplete="name"/>
+        </div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="text" id="signupEmail" placeholder="you@school.edu" autocomplete="username"/>
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <div class="auth-pw-toggle">
+            <input type="password" id="signupPassword" placeholder="At least 6 characters" autocomplete="new-password"/>
+            <span class="auth-pw-eye" onclick="togglePw('signupPassword',this)">SHOW</span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-green auth-submit">CREATE ACCOUNT →</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<div id="appRoot">
+<header>
+  <div class="logo">
+    <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="logo-icon">C2</div>
+    <div>
+      <div class="logo-text">MoDCoMSiM</div>
+      <div class="logo-sub">MODULATION & CODING TECHNIQUES SIMULATOR</div>
+    </div>
+  </div>
+  <div class="hdr-controls">
+    <div class="textsize-grp" title="Text size">
+      <button onclick="changeTextSize(-1)" aria-label="Decrease text size">A−</button>
+      <button onclick="changeTextSize(1)" aria-label="Increase text size">A+</button>
+    </div>
+    <button class="hdr-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light/dark mode">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      <span id="themeLabel">DARK</span>
+    </button>
+    <div class="mode-pill student" id="modePill" onclick="toggleAdminMode()" title="Admins can preview Student mode; click to switch back">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z"/></svg>
+      <span id="modeLabel">STUDENT</span>
+    </div>
+    <div class="hdr-user" id="hdrUser">
+      <div class="hdr-user-avatar" id="hdrUserAvatar">?</div>
+      <div>
+        <div class="hdr-user-name" id="hdrUserName">—</div>
+        <div class="hdr-user-role" id="hdrUserRole">—</div>
+      </div>
+      <button class="hdr-btn" id="logoutBtn" onclick="handleLogout()" title="Sign out">⏻</button>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="hdrStatus">READY</span>
+    &nbsp;|&nbsp;
+    <span id="hdrTime">--:--:--</span>
+  </div>
+</header>
+
+<div id="navScrim" class="nav-scrim"></div>
+
+<div class="app">
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav id="mainNav">
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" data-page="home">
+      <div class="nav-dot"></div>Dashboard
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Simulators</div>
+    <div class="nav-item" data-page="charcode">
+      <div class="nav-dot"></div>Character Coding
+    </div>
+    <div class="nav-group-label">
+      <div class="nav-dot"></div>PCM
+    </div>
+    <div class="nav-item nav-sub" data-page="pcm-basic"><div class="nav-dot"></div>Basic PCM</div>
+    <div class="nav-item nav-sub" data-page="pcm-delta"><div class="nav-dot"></div>Delta PCM</div>
+    <div class="nav-item nav-sub" data-page="pcm-diff"><div class="nav-dot"></div>Differential PCM</div>
+    <div class="nav-item" data-page="linecode">
+      <div class="nav-dot"></div>Line Coding
+    </div>
+    <div class="nav-group-label">
+      <div class="nav-dot"></div>Digital Modulation
+    </div>
+    <div class="nav-item nav-sub" data-page="ask"><div class="nav-dot"></div>ASK</div>
+    <div class="nav-item nav-sub" data-page="fsk"><div class="nav-dot"></div>FSK</div>
+    <div class="nav-item nav-sub" data-page="bpsk"><div class="nav-dot"></div>BPSK</div>
+    <div class="nav-item nav-sub" data-page="qpsk"><div class="nav-dot"></div>QPSK <span class="badge-new">NEW</span></div>
+    <div class="nav-item nav-sub" data-page="qam"><div class="nav-dot"></div>QAM <span class="badge-new">NEW</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">New Modules</div>
+    <div class="nav-item" data-page="edc"><div class="nav-dot"></div>Error Detection <span class="badge-new">NEW</span></div>
+    <div class="nav-item" data-page="mux"><div class="nav-dot"></div>Multiplexing <span class="badge-new">NEW</span></div>
+    <div class="nav-item" data-page="awgn"><div class="nav-dot"></div>AWGN & BER <span class="badge-new">NEW</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Tools</div>
+    <div class="nav-item" data-page="compare"><div class="nav-dot"></div>Compare Mode</div>
+    <div class="nav-item" data-page="quiz"><div class="nav-dot"></div>Quiz</div>
+  </div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main>
+
+<!-- ══ HOME ══ -->
+<div class="page active" id="page-home">
+  <div class="home-hero">
+    <div class="home-title">MoDCoMSiM</div>
+    <div class="home-sub">Modulation and Coding Techniques Simulator</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
+      <span class="chip chip-g">✓ Step-by-Step Mode</span>
+      <span class="chip chip-b">✓ AWGN + BER</span>
+      <span class="chip chip-y">✓ QPSK & QAM</span>
+      <span class="chip chip-p">✓ Error Correction</span>
+      <span class="chip chip-r">✓ Quizzes</span>
+    </div>
+  </div>
+  <div class="module-grid">
+    <div class="module-card" onclick="nav('charcode')">
+      <div class="module-icon" data-icon="charcode"></div>
+      <div class="module-name">CHARACTER CODING</div>
+      <div class="module-desc">Convert text to ASCII / EBCDIC / Unicode bit representations with parity checking.</div>
+      <div class="module-chips"><span class="chip chip-b">ASCII</span><span class="chip chip-b">EBCDIC</span><span class="chip chip-g">Unicode</span></div>
+    </div>
+    <div class="module-card" onclick="nav('pcm-basic')">
+      <div class="module-icon" data-icon="pcm"></div>
+      <div class="module-name">PULSE CODE MODULATION</div>
+      <div class="module-desc">Sample, quantize and encode analog signals. Compare Basic, Delta, and Differential PCM.</div>
+      <div class="module-chips"><span class="chip chip-b">Basic</span><span class="chip chip-b">Delta</span><span class="chip chip-b">Differential</span></div>
+    </div>
+    <div class="module-card" onclick="nav('linecode')">
+      <div class="module-icon" data-icon="linecode"></div>
+      <div class="module-name">LINE CODING</div>
+      <div class="module-desc">Visualize NRZ, RZ, Manchester, AMI and more with real-time waveform plotting.</div>
+      <div class="module-chips"><span class="chip chip-p">NRZ</span><span class="chip chip-p">Manchester</span><span class="chip chip-p">AMI</span></div>
+    </div>
+    <div class="module-card" onclick="nav('ask')">
+      <div class="module-icon" data-icon="antenna"></div>
+      <div class="module-name">DIGITAL MODULATION</div>
+      <div class="module-desc">ASK, FSK, BPSK, QPSK, and QAM with constellation diagrams and noise simulation.</div>
+      <div class="module-chips"><span class="chip chip-y">ASK</span><span class="chip chip-y">FSK</span><span class="chip chip-y">QPSK</span><span class="chip chip-y">QAM</span></div>
+    </div>
+    <div class="module-card" onclick="nav('edc')">
+      <div class="module-icon" data-icon="edc"></div>
+      <div class="module-name">ERROR DETECTION & CORRECTION</div>
+      <div class="module-desc">CRC, Hamming Code, and parity-based error detection with step-by-step walkthroughs.</div>
+      <div class="module-chips"><span class="chip chip-r">CRC</span><span class="chip chip-r">Hamming</span><span class="chip chip-r">Parity</span><span class="chip chip-g">NEW</span></div>
+    </div>
+    <div class="module-card" onclick="nav('mux')">
+      <div class="module-icon" data-icon="mux"></div>
+      <div class="module-name">MULTIPLEXING</div>
+      <div class="module-desc">TDM and FDM visualizations showing how multiple signals share a single channel.</div>
+      <div class="module-chips"><span class="chip chip-p">TDM</span><span class="chip chip-p">FDM</span><span class="chip chip-g">NEW</span></div>
+    </div>
+    <div class="module-card" onclick="nav('awgn')">
+      <div class="module-icon" data-icon="awgn"></div>
+      <div class="module-name">AWGN & BER ANALYSIS</div>
+      <div class="module-desc">Add Gaussian noise to any signal and plot Bit Error Rate curves vs SNR.</div>
+      <div class="module-chips"><span class="chip chip-r">AWGN</span><span class="chip chip-r">BER</span><span class="chip chip-g">NEW</span></div>
+    </div>
+    <div class="module-card" onclick="nav('quiz')">
+      <div class="module-icon" data-icon="quiz"></div>
+      <div class="module-name">QUIZ MODE</div>
+      <div class="module-desc">Test your understanding of all topics with auto-graded questions and explanations.</div>
+      <div class="module-chips"><span class="chip chip-g">Auto-graded</span><span class="chip chip-g">NEW</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHARACTER CODING ══ -->
+<div class="page" id="page-charcode">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(34,195,255,0.15);" data-icon="charcode"></div>
+    <div><div class="page-title">Character Coding</div><div class="page-desc">TEXT → BINARY ENCODING SIMULATOR</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="cc-sim">Simulator</div>
+    <div class="tab" data-tab="cc-step">Step-by-Step</div>
+    <div class="tab" data-tab="cc-compare">Compare</div>
+    <div class="tab" data-tab="cc-info">Overview</div>
+  </div>
+
+  <div class="tab-content active" id="cc-sim">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">TRANSMITTER</div>
+        <div class="ctrl-grid">
+          <div class="ctrl-group">
+            <div class="ctrl-label">Encoding Type</div>
+            <select id="cc-type">
+              <option>ASCII (7-bit)</option>
+              <option>ASCII (8-bit)</option>
+              <option>EBCDIC</option>
+              <option>Unicode UTF-8</option>
+            </select>
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">Parity</div>
+            <select id="cc-parity">
+              <option>None</option>
+              <option>Odd</option>
+              <option>Even</option>
+            </select>
+          </div>
+        </div>
+        <div class="ctrl-group mb8">
+          <div class="ctrl-label">Input Text</div>
+          <input type="text" id="cc-input" placeholder="Type something..." value="HELLO"/>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="ccEncode()">▶ ENCODE</button>
+          <button class="btn btn-ghost btn-sm" onclick="ccClear()">CLEAR</button>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="ctrl-label mb8">Bitstream Output</div>
+          <div class="bitstream scrollable" id="cc-bits"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">RECEIVER</div>
+        <div class="ctrl-group mb8">
+          <div class="ctrl-label">Received Bitstream (paste or auto-filled)</div>
+          <textarea id="cc-rx-bits" rows="3" placeholder="Paste bitstream here..."></textarea>
+        </div>
+        <div class="ctrl-group mb8">
+          <div class="ctrl-label">Decoding Type</div>
+          <select id="cc-rx-type">
+            <option>ASCII (7-bit)</option>
+            <option>ASCII (8-bit)</option>
+            <option>EBCDIC</option>
+            <option>Unicode UTF-8</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="ccDecode()">▼ DECODE</button>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="ctrl-label mb8">Decoded Output</div>
+          <div class="output-box" id="cc-output">—</div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="ctrl-label mb8">Parity Check Result</div>
+          <div class="output-box" id="cc-parity-result">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">CHARACTER TABLE</div>
+      <div class="output-box scrollable" id="cc-table" style="color:var(--text);"></div>
+      <div class="export-btn-wrap">
+        <button class="btn btn-ghost btn-sm" onclick="exportText('cc-bits','bitstream.txt')">⬇ Export Bitstream</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportText('cc-table','char-table.txt')">⬇ Export Table</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="cc-step">
+    <div class="card">
+      <div class="card-title">STEP-BY-STEP MODE</div>
+      <div class="info-box">Enter a single character to walk through encoding one bit at a time.</div>
+      <div class="row">
+        <div class="col"><input type="text" id="cc-step-char" maxlength="1" placeholder="Single char e.g. A" value="A"/></div>
+        <div class="col">
+          <select id="cc-step-type"><option>ASCII (7-bit)</option><option>ASCII (8-bit)</option><option>EBCDIC</option></select>
+        </div>
+        <button class="btn btn-primary" onclick="ccStepStart()">START</button>
+      </div>
+      <div id="cc-step-area" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="cc-compare">
+    <div class="card">
+      <div class="card-title">SIDE-BY-SIDE COMPARISON</div>
+      <div class="row mb8">
+        <div class="col"><input type="text" id="cc-cmp-input" placeholder="Text to compare" value="Hi"/></div>
+        <button class="btn btn-primary" onclick="ccCompare()">COMPARE</button>
+      </div>
+      <div class="compare-grid" id="cc-cmp-out"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="cc-info">
+    <div class="card">
+      <div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>Character Coding</b> maps characters to binary bit patterns.<br><br>
+        <b>ASCII (7-bit):</b> 128 characters (0–127). Used in most English text systems.<br>
+        <b>ASCII (8-bit / Extended):</b> 256 characters including special symbols.<br>
+        <b>EBCDIC:</b> IBM's 8-bit encoding, used in mainframe systems.<br>
+        <b>Unicode UTF-8:</b> Variable-width (1–4 bytes). Supports all world languages.<br><br>
+        <b>Parity Bits:</b> An extra bit added to detect single-bit errors. Odd parity ensures the total number of 1s is odd; Even parity ensures it's even.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PCM BASIC ══ -->
+<div class="page" id="page-pcm-basic">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(0,229,160,0.15);" data-icon="pcm"></div>
+    <div><div class="page-title">Basic PCM</div><div class="page-desc">SAMPLE → QUANTIZE → ENCODE</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="pcm-sim">Simulator</div>
+    <div class="tab" data-tab="pcm-step">Step-by-Step</div>
+    <div class="tab" data-tab="pcm-info">Overview</div>
+  </div>
+
+  <div class="tab-content active" id="pcm-sim">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Sampling Freq</div><div class="metric-val b" id="pcm-fs-disp">8000 Hz</div></div>
+      <div class="metric"><div class="metric-label">Bit Depth</div><div class="metric-val g" id="pcm-bits-disp">8 bits</div></div>
+      <div class="metric"><div class="metric-label">Levels</div><div class="metric-val y" id="pcm-levels-disp">256</div></div>
+      <div class="metric"><div class="metric-label">SNR (est.)</div><div class="metric-val p" id="pcm-snr-disp">49.9 dB</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SIGNAL PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Signal Type</div>
+          <select id="pcm-sig">
+            <option>Sine Wave</option>
+            <option>Square Wave</option>
+            <option>Sawtooth</option>
+            <option>Triangle</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Frequency (Hz)</div>
+          <input type="number" id="pcm-freq" value="440" min="20" max="4000"/>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Amplitude</div>
+          <input type="number" id="pcm-amp" value="1" min="0.1" max="5" step="0.1"/>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Sampling Rate (Hz)</div>
+          <input type="number" id="pcm-fs" value="8000" min="100" max="44100" oninput="pcmUpdate()"/>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Bit Depth</div>
+          <select id="pcm-bitdepth" onchange="pcmUpdate()">
+            <option value="3">3-bit (8 levels)</option>
+            <option value="4">4-bit (16 levels)</option>
+            <option value="8" selected>8-bit (256 levels)</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">AWGN (dB SNR)</div>
+          <input type="range" id="pcm-noise" min="-10" max="40" value="40" oninput="document.getElementById('pcm-noise-v').textContent=this.value+'dB'"/>
+          <span id="pcm-noise-v" style="font-size:11px;color:var(--neon-y)">40dB</span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="pcmSimulate()">▶ SIMULATE</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('pcmCanvas','pcm-waveform.png')">⬇ Export PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">WAVEFORMS</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Original Signal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-g)"></div>Sampled</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>Reconstructed</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="pcmCanvas" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ENCODED BITSTREAM</div>
+      <div class="output-box scrollable" id="pcm-bitstream" style="font-size:11px;line-height:1.8;">Click SIMULATE to generate</div>
+      <div class="export-btn-wrap">
+        <button class="btn btn-ghost btn-sm" onclick="exportText('pcm-bitstream','pcm-bits.txt')">⬇ Export Bitstream</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="pcm-step">
+    <div class="card">
+      <div class="card-title">PCM STEP-BY-STEP</div>
+      <div class="steps-row" id="pcm-steps-row">
+        <div class="step-btn active" id="pcm-step-0">1. Sample</div>
+        <div class="step-btn" id="pcm-step-1">2. Quantize</div>
+        <div class="step-btn" id="pcm-step-2">3. Encode</div>
+        <div class="step-btn" id="pcm-step-3">4. Decode</div>
+      </div>
+      <div id="pcm-step-content"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" onclick="pcmStepPrev()">◀ PREV</button>
+        <button class="btn btn-primary btn-sm" onclick="pcmStepNext()">NEXT ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="pcm-info">
+    <div class="card">
+      <div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>Pulse Code Modulation (PCM)</b> converts an analog signal to digital via 3 steps:<br><br>
+        <b>1. Sampling:</b> The analog signal is measured at regular intervals (Fs). Nyquist theorem requires Fs ≥ 2×f_max.<br>
+        <b>2. Quantization:</b> Each sample is rounded to the nearest level. Levels = 2^n where n = bit depth. Causes quantization noise.<br>
+        <b>3. Encoding:</b> Each quantized level is represented as a binary code word.<br><br>
+        <b>SNR Formula:</b> SNR ≈ 6.02n + 1.76 dB (n = bit depth)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELTA PCM ══ -->
+<div class="page" id="page-pcm-delta">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(0,229,160,0.15);" data-icon="pcm"></div>
+    <div><div class="page-title">Delta PCM</div><div class="page-desc">SLOPE-BASED DIFFERENTIAL ENCODING</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">PARAMETERS</div>
+    <div class="ctrl-grid">
+      <div class="ctrl-group"><div class="ctrl-label">Signal Type</div>
+        <select id="dpcm-sig"><option>Sine Wave</option><option>Triangle</option><option>Sawtooth</option></select></div>
+      <div class="ctrl-group"><div class="ctrl-label">Frequency (Hz)</div><input type="number" id="dpcm-freq" value="200"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Step Size (Δ)</div><input type="number" id="dpcm-step" value="0.1" step="0.01"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Samples</div><input type="number" id="dpcm-samples" value="64"/></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="deltaSimulate()">▶ SIMULATE</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCanvas('deltaCanvas','delta-pcm.png')">⬇ PNG</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">WAVEFORMS</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Original</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-g)"></div>Delta Reconstructed</div>
+    </div>
+    <div class="osc-wrap mt8"><canvas id="deltaCanvas" height="200"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">DELTA BITS</div>
+    <div class="bitstream scrollable" id="delta-bits"></div>
+    <div class="info-box mt8">Each bit represents: <span style="color:var(--neon-g)">1 = signal went UP</span> &nbsp; <span style="color:var(--neon-r)">0 = signal went DOWN</span></div>
+  </div>
+</div>
+
+<!-- ══ DIFFERENTIAL PCM ══ -->
+<div class="page" id="page-pcm-diff">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(0,229,160,0.15);" data-icon="pcm"></div>
+    <div><div class="page-title">Differential PCM</div><div class="page-desc">DPCM — ENCODE DIFFERENCES BETWEEN SAMPLES</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">PARAMETERS</div>
+    <div class="ctrl-grid">
+      <div class="ctrl-group"><div class="ctrl-label">Signal Type</div>
+        <select id="diffpcm-sig"><option>Sine Wave</option><option>Triangle</option></select></div>
+      <div class="ctrl-group"><div class="ctrl-label">Frequency (Hz)</div><input type="number" id="diffpcm-freq" value="200"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Bit Depth</div>
+        <select id="diffpcm-bits"><option value="3">3-bit</option><option value="4" selected>4-bit</option><option value="8">8-bit</option></select></div>
+      <div class="ctrl-group"><div class="ctrl-label">Samples</div><input type="number" id="diffpcm-samples" value="64"/></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="diffPCMSimulate()">▶ SIMULATE</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">ORIGINAL vs DPCM RECONSTRUCTED</div>
+    <div class="osc-wrap mt8"><canvas id="diffpcmCanvas" height="200"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ LINE CODING ══ -->
+<div class="page" id="page-linecode">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(201,123,255,0.15);" data-icon="linecode"></div>
+    <div><div class="page-title">Line Coding</div><div class="page-desc">DIGITAL DATA → DIGITAL SIGNAL</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="lc-sim">Simulator</div>
+    <div class="tab" data-tab="lc-compare">Compare</div>
+    <div class="tab" data-tab="lc-info">Overview</div>
+  </div>
+
+  <div class="tab-content active" id="lc-sim">
+    <div class="card">
+      <div class="card-title">SIGNAL PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Bit Sequence</div>
+          <input type="text" id="lc-bits" value="10110010" placeholder="e.g. 10110010"/>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Encoding Scheme</div>
+          <select id="lc-scheme">
+            <option>NRZ-L (Unipolar)</option>
+            <option>NRZ-L (Bipolar)</option>
+            <option>NRZ-I</option>
+            <option>RZ (Unipolar)</option>
+            <option>RZ (Bipolar)</option>
+            <option>Manchester</option>
+            <option>Differential Manchester</option>
+            <option>AMI (Bipolar RZ)</option>
+            <option>B8ZS</option>
+            <option>HDB3</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Bit Rate (kbps)</div>
+          <input type="number" id="lc-bitrate" value="1" min="1"/>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">AWGN Noise</div>
+          <input type="range" id="lc-noise" min="0" max="0.5" step="0.01" value="0" oninput="document.getElementById('lc-noise-v').textContent=this.value"/>
+          <span id="lc-noise-v" style="font-size:11px;color:var(--neon-y)">0</span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="lcSimulate()">▶ SIMULATE</button>
+        <button class="btn btn-ghost btn-sm" onclick="lcRandom()">RANDOM BITS</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('lcCanvas','line-coding.png')">⬇ PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">WAVEFORM</div>
+      <div class="osc-bar">
+        <label>SCHEME:</label><span id="lc-scheme-disp">—</span>
+        &nbsp;|&nbsp;<label>BITS:</label><span id="lc-bits-disp">—</span>
+      </div>
+      <div class="osc-wrap"><canvas id="lcCanvas" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="lc-compare">
+    <div class="card">
+      <div class="card-title">COMPARE TWO SCHEMES</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="lc-cmp-bits" value="10110010"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Scheme A</div>
+          <select id="lc-cmp-a"><option>NRZ-L (Unipolar)</option><option>Manchester</option><option>AMI (Bipolar RZ)</option><option>NRZ-I</option></select></div>
+        <div class="ctrl-group"><div class="ctrl-label">Scheme B</div>
+          <select id="lc-cmp-b"><option value="1">Manchester</option><option>Differential Manchester</option><option>NRZ-L (Bipolar)</option><option>AMI (Bipolar RZ)</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="lcCompare()">▶ COMPARE</button>
+      <div class="compare-grid mt8" id="lc-cmp-out"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="lc-info">
+    <div class="card">
+      <div class="card-title">LINE CODING SCHEMES</div>
+      <div class="info-box">
+        <b>NRZ-L:</b> Level directly corresponds to bit value. Simple but has DC component.<br>
+        <b>NRZ-I:</b> Transition at 1, no transition at 0. Better clock recovery.<br>
+        <b>RZ:</b> Returns to zero halfway through each bit period.<br>
+        <b>Manchester:</b> Always a mid-bit transition. Self-clocking.<br>
+        <b>AMI:</b> Alternating Mark Inversion — zeros stay at 0, ones alternate +/-.<br>
+        <b>B8ZS/HDB3:</b> Substitution codes that break up long zero runs.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ASK ══ -->
+<div class="page" id="page-ask">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,196,64,0.15);" data-icon="antenna"></div>
+    <div><div class="page-title">ASK — Amplitude Shift Keying</div><div class="page-desc">DIGITAL MODULATION</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="ask-sim">Simulator</div>
+    <div class="tab" data-tab="ask-step">Step-by-Step</div>
+    <div class="tab" data-tab="ask-info">Overview</div>
+  </div>
+  <div class="tab-content active" id="ask-sim">
+    <div class="card">
+      <div class="card-title">PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="ask-bits" value="10110100"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Carrier Freq (fc)</div><input type="number" id="ask-fc" value="8"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Amplitude — Mark (A1)</div><input type="number" id="ask-a1" value="1" step="0.1"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Amplitude — Space (A0)</div><input type="number" id="ask-a0" value="0" step="0.1"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">AWGN Noise</div>
+          <input type="range" id="ask-noise" min="0" max="0.8" step="0.01" value="0" oninput="document.getElementById('ask-nv').textContent=this.value"/>
+          <span id="ask-nv" style="font-size:11px;color:var(--neon-y)">0</span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="askSimulate()">▶ SIMULATE</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('askCanvas','ask.png')">⬇ PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">MODULATED WAVEFORM</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Message</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>ASK Signal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-g)"></div>Demodulated</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="askCanvas" height="260"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SPECTRUM (FFT)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>ASK Signal Spectrum</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="askSpecCanvas" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="tab-content" id="ask-step">
+    <div class="card">
+      <div class="card-title">ASK STEP-BY-STEP</div>
+      <div class="steps-row">
+        <div class="step-btn active" id="ask-s0" onclick="askStep(0)">1. Message Signal</div>
+        <div class="step-btn" id="ask-s1" onclick="askStep(1)">2. Carrier Signal</div>
+        <div class="step-btn" id="ask-s2" onclick="askStep(2)">3. ASK Output</div>
+        <div class="step-btn" id="ask-s3" onclick="askStep(3)">4. Demodulation</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="askStepCanvas" height="200"></canvas></div>
+      <div class="info-box mt8" id="ask-step-desc">Step 1: The message signal is a digital baseband signal consisting of bits 0 and 1.</div>
+    </div>
+  </div>
+  <div class="tab-content" id="ask-info">
+    <div class="card"><div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>ASK</b> varies the amplitude of a carrier wave based on the digital message.<br><br>
+        For bit 1 (Mark): amplitude = A1<br>
+        For bit 0 (Space): amplitude = A0 (often 0 = OOK, On-Off Keying)<br><br>
+        <b>Demodulation:</b> Envelope detection — rectify the signal, pass through LPF, then threshold compare.<br><br>
+        <b>Weakness:</b> Very susceptible to amplitude noise.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FSK ══ -->
+<div class="page" id="page-fsk">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,196,64,0.15);" data-icon="antenna"></div>
+    <div><div class="page-title">FSK — Frequency Shift Keying</div><div class="page-desc">DIGITAL MODULATION</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">PARAMETERS</div>
+    <div class="ctrl-grid">
+      <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="fsk-bits" value="10110100"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Freq Mark f1 (Hz)</div><input type="number" id="fsk-f1" value="10"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Freq Space f0 (Hz)</div><input type="number" id="fsk-f0" value="5"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Amplitude</div><input type="number" id="fsk-amp" value="1" step="0.1"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">AWGN Noise</div>
+        <input type="range" id="fsk-noise" min="0" max="0.8" step="0.01" value="0" oninput="document.getElementById('fsk-nv').textContent=this.value"/>
+        <span id="fsk-nv" style="font-size:11px;color:var(--neon-y)">0</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="fskSimulate()">▶ SIMULATE</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCanvas('fskCanvas','fsk.png')">⬇ PNG</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">WAVEFORM</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Message</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>FSK Signal</div>
+    </div>
+    <div class="osc-wrap mt8"><canvas id="fskCanvas" height="220"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">SPECTRUM (FFT)</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>FSK Signal Spectrum</div>
+    </div>
+    <div class="osc-wrap mt8"><canvas id="fskSpecCanvas" height="220"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ BPSK ══ -->
+<div class="page" id="page-bpsk">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,196,64,0.15);" data-icon="antenna"></div>
+    <div><div class="page-title">BPSK — Binary Phase Shift Keying</div><div class="page-desc">DIGITAL MODULATION</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">PARAMETERS</div>
+    <div class="ctrl-grid">
+      <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="bpsk-bits" value="10110100"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Carrier Freq (fc)</div><input type="number" id="bpsk-fc" value="8"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Amplitude</div><input type="number" id="bpsk-amp" value="1" step="0.1"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">AWGN Noise</div>
+        <input type="range" id="bpsk-noise" min="0" max="0.8" step="0.01" value="0" oninput="document.getElementById('bpsk-nv').textContent=this.value"/>
+        <span id="bpsk-nv" style="font-size:11px;color:var(--neon-y)">0</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="bpskSimulate()">▶ SIMULATE</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCanvas('bpskCanvas','bpsk.png')">⬇ PNG</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">WAVEFORM</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Message (0°/180° phase)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>BPSK Signal</div>
+    </div>
+    <div class="osc-wrap mt8"><canvas id="bpskCanvas" height="220"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">SPECTRUM (FFT)</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>BPSK Signal Spectrum</div>
+    </div>
+    <div class="osc-wrap mt8"><canvas id="bpskSpecCanvas" height="220"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ QPSK ══ -->
+<div class="page" id="page-qpsk">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,196,64,0.15);" data-icon="antenna"></div>
+    <div><div class="page-title">QPSK — Quadrature Phase Shift Keying</div><div class="page-desc">4-SYMBOL MODULATION · NEW</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="qpsk-sim">Simulator</div>
+    <div class="tab" data-tab="qpsk-const">Constellation</div>
+    <div class="tab" data-tab="qpsk-info">Overview</div>
+  </div>
+  <div class="tab-content active" id="qpsk-sim">
+    <div class="card">
+      <div class="card-title">PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Bitstream (even length)</div><input type="text" id="qpsk-bits" value="00011011"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Carrier Freq</div><input type="number" id="qpsk-fc" value="8"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Amplitude</div><input type="number" id="qpsk-amp" value="1" step="0.1"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">AWGN Noise</div>
+          <input type="range" id="qpsk-noise" min="0" max="0.8" step="0.01" value="0" oninput="document.getElementById('qpsk-nv').textContent=this.value"/>
+          <span id="qpsk-nv" style="font-size:11px;color:var(--neon-y)">0</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="qpskSimulate()">▶ SIMULATE</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('qpskCanvas','qpsk.png')">⬇ PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">QPSK WAVEFORM</div>
+      <div class="osc-wrap"><canvas id="qpskCanvas" height="240"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SPECTRUM (FFT)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>QPSK Signal Spectrum</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="qpskSpecCanvas" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SYMBOL MAPPING</div>
+      <div class="output-box" id="qpsk-symbols">Run SIMULATE to see symbol mapping</div>
+    </div>
+  </div>
+  <div class="tab-content" id="qpsk-const">
+    <div class="card">
+      <div class="card-title">CONSTELLATION DIAGRAM</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <canvas id="constCanvas" width="300" height="300"></canvas>
+        <div>
+          <div class="info-box" style="min-width:200px;">
+            QPSK maps 2 bits per symbol to 4 phase points:<br><br>
+            <span style="color:var(--neon-g)">● 00 → 45°</span><br>
+            <span style="color:var(--neon-b)">● 01 → 135°</span><br>
+            <span style="color:var(--neon-y)">● 11 → 225°</span><br>
+            <span style="color:var(--neon-r)">● 10 → 315°</span>
+          </div>
+          <div class="ctrl-label mt8 mb8">Noise Level</div>
+          <input type="range" id="const-noise" min="0" max="0.5" step="0.01" value="0" oninput="drawConstellation()"/>
+          <button class="btn btn-primary btn-sm mt8" onclick="drawConstellation()">UPDATE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="qpsk-info">
+    <div class="card"><div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>QPSK</b> carries 2 bits per symbol using 4 distinct phase shifts (45°, 135°, 225°, 315°).<br><br>
+        It doubles the spectral efficiency of BPSK — same bandwidth, twice the data rate.<br><br>
+        <b>Gray Coding:</b> Adjacent symbols differ by only 1 bit, reducing BER.<br>
+        <b>BER:</b> Q(√(2·Eb/N0)) — same as BPSK per bit!
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QAM ══ -->
+<div class="page" id="page-qam">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,196,64,0.15);" data-icon="antenna"></div>
+    <div><div class="page-title">QAM — Quadrature Amplitude Modulation</div><div class="page-desc">4/16/64/256-QAM · NEW</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="qam-const">Constellation</div>
+    <div class="tab" data-tab="qam-wave">Waveform & Spectrum</div>
+    <div class="tab" data-tab="qam-info">Overview</div>
+  </div>
+  <div class="tab-content active" id="qam-const">
+    <div class="card">
+      <div class="card-title">QAM PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">QAM Order</div>
+          <select id="qam-order" onchange="qamDraw();qamWaveDraw();">
+            <option>4-QAM</option><option selected>16-QAM</option><option>64-QAM</option><option>256-QAM</option>
+          </select></div>
+        <div class="ctrl-group"><div class="ctrl-label">AWGN Noise</div>
+          <input type="range" id="qam-noise" min="0" max="0.6" step="0.01" value="0.05" oninput="document.getElementById('qam-nv').textContent=this.value;qamDraw();qamWaveDraw();"/>
+          <span id="qam-nv" style="font-size:11px;color:var(--neon-y)">0.05</span></div>
+        <div class="ctrl-group"><div class="ctrl-label">Points</div>
+          <input type="number" id="qam-pts" value="200" min="10" max="500"/></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="qamDraw()">▶ DRAW</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('qamCanvas','qam-constellation.png')">⬇ PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">CONSTELLATION DIAGRAM</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+        <canvas id="qamCanvas" width="340" height="340" style="background:#060b15;border-radius:8px;border:1px solid var(--border2);"></canvas>
+        <div>
+          <div class="metric"><div class="metric-label">Order</div><div class="metric-val b" id="qam-order-disp">16-QAM</div></div>
+          <div class="metric mt8"><div class="metric-label">Bits/Symbol</div><div class="metric-val g" id="qam-bps-disp">4</div></div>
+          <div class="metric mt8"><div class="metric-label">Symbols</div><div class="metric-val y" id="qam-syms-disp">16</div></div>
+          <div class="metric mt8"><div class="metric-label">Empirical SER</div><div class="metric-val r" id="qam-ser-disp">0.000</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="qam-wave">
+    <div class="card">
+      <div class="card-title">PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="qam-wave-bits" value="0110101100111001"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Carrier Freq (fc)</div><input type="number" id="qam-wave-fc" value="8"/></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="qamWaveDraw()">▶ SIMULATE</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('qamWaveCanvas','qam-waveform.png')">⬇ PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">I/Q COMPOSITE WAVEFORM</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>In-Phase (I)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-p)"></div>Quadrature (Q)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-y)"></div>QAM Signal (I·cos − Q·sin)</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="qamWaveCanvas" height="260"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SPECTRUM (FFT)</div>
+      <div class="osc-wrap mt8"><canvas id="qamSpecCanvas" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="tab-content" id="qam-info">
+    <div class="card"><div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>QAM</b> modulates both amplitude and phase simultaneously, combining ASK and PSK.<br><br>
+        <b>16-QAM:</b> 4 bits/symbol, 16 constellation points. Used in Wi-Fi, LTE.<br>
+        <b>64-QAM:</b> 6 bits/symbol, 64 points. Higher data rate but needs clean signal.<br>
+        <b>256-QAM:</b> 8 bits/symbol — used in cable TV & Wi-Fi 6.<br><br>
+        <b>Trade-off:</b> Higher QAM order → more bits per symbol → more sensitive to noise.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ERROR DETECTION & CORRECTION ══ -->
+<div class="page" id="page-edc">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,79,123,0.15);" data-icon="edc"></div>
+    <div><div class="page-title">Error Detection & Correction</div><div class="page-desc">CRC · HAMMING CODE · PARITY</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="edc-parity">Parity</div>
+    <div class="tab" data-tab="edc-hamming">Hamming Code</div>
+    <div class="tab" data-tab="edc-crc">CRC</div>
+    <div class="tab" data-tab="edc-info">Overview</div>
+  </div>
+
+  <div class="tab-content active" id="edc-parity">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">PARITY CHECK ENCODER</div>
+        <div class="ctrl-group mb8"><div class="ctrl-label">Data Bits</div><input type="text" id="par-bits" value="1011001" placeholder="e.g. 1011001"/></div>
+        <div class="ctrl-group mb8"><div class="ctrl-label">Parity Type</div>
+          <select id="par-type"><option>Even</option><option>Odd</option></select></div>
+        <button class="btn btn-primary" onclick="parityEncode()">ENCODE</button>
+        <div class="output-box mt8" id="par-out">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">PARITY ERROR DETECTOR</div>
+        <div class="ctrl-group mb8"><div class="ctrl-label">Received Bits (with parity bit)</div><input type="text" id="par-rx" placeholder="e.g. 10110011"/></div>
+        <div class="ctrl-group mb8"><div class="ctrl-label">Parity Type</div>
+          <select id="par-rx-type"><option>Even</option><option>Odd</option></select></div>
+        <button class="btn btn-green" onclick="parityCheck()">CHECK</button>
+        <div class="output-box mt8" id="par-check">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="edc-hamming">
+    <div class="card">
+      <div class="card-title">HAMMING CODE (7,4)</div>
+      <div class="info-box">Hamming(7,4) encodes 4 data bits into 7 bits with 3 parity bits, detecting and correcting 1-bit errors.</div>
+      <div class="steps-row">
+        <div class="step-btn active" id="ham-s0">1. Input</div>
+        <div class="step-btn" id="ham-s1">2. Place Bits</div>
+        <div class="step-btn" id="ham-s2">3. Calc Parity</div>
+        <div class="step-btn" id="ham-s3">4. Final Code</div>
+      </div>
+      <div class="ctrl-grid mt8">
+        <div class="ctrl-group"><div class="ctrl-label">4 Data Bits</div><input type="text" id="ham-data" value="1011" maxlength="4" placeholder="4 bits e.g. 1011"/></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="hammingEncode()">ENCODE</button>
+        <button class="btn btn-ghost btn-sm" onclick="hammingStepNext()">NEXT STEP ▶</button>
+      </div>
+      <div id="hamming-step-area" class="mt8"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ERROR CORRECTION DEMO</div>
+      <div class="ctrl-group mb8"><div class="ctrl-label">Received 7-bit Codeword (introduce 1-bit error)</div>
+        <input type="text" id="ham-rx" placeholder="e.g. 1101011" maxlength="7"/></div>
+      <button class="btn btn-red" onclick="hammingCorrect()">DETECT & CORRECT</button>
+      <div class="output-box mt8" id="ham-correct">—</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="edc-crc">
+    <div class="card">
+      <div class="card-title">CYCLIC REDUNDANCY CHECK (CRC)</div>
+      <div class="info-box">CRC divides the data bits by a generator polynomial and appends the remainder as a checksum.</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Data Bits</div><input type="text" id="crc-data" value="110100011011"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">Generator Polynomial</div>
+          <select id="crc-poly">
+            <option value="1011">CRC-3 (1011)</option>
+            <option value="10011" selected>CRC-4 (10011)</option>
+            <option value="100101">CRC-5 (100101)</option>
+            <option value="11000001100001">CRC-CCITT</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="crcEncode()">COMPUTE CRC</button>
+      </div>
+      <div id="crc-steps" class="mt8"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CRC VERIFICATION</div>
+      <div class="ctrl-group mb8"><div class="ctrl-label">Received Frame (data + CRC)</div><input type="text" id="crc-rx" placeholder="Paste received frame"/></div>
+      <div class="ctrl-group mb8"><div class="ctrl-label">Generator</div>
+        <select id="crc-rx-poly"><option value="1011">CRC-3</option><option value="10011" selected>CRC-4</option><option value="100101">CRC-5</option></select></div>
+      <button class="btn btn-green" onclick="crcVerify()">VERIFY</button>
+      <div class="output-box mt8" id="crc-verify-out">—</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="edc-info">
+    <div class="card"><div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>Parity Check:</b> Simplest method. Adds 1 bit to make total 1s even or odd. Detects single-bit errors only.<br><br>
+        <b>Hamming Code:</b> Can detect up to 2-bit errors and correct 1-bit errors. Parity bits placed at power-of-2 positions.<br><br>
+        <b>CRC:</b> Most powerful. Treats bits as polynomial coefficients and divides by generator polynomial. Remainder is the checksum. Widely used in Ethernet, USB, ZIP files.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MULTIPLEXING ══ -->
+<div class="page" id="page-mux">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(201,123,255,0.15);" data-icon="mux"></div>
+    <div><div class="page-title">Multiplexing</div><div class="page-desc">TDM & FDM SIMULATOR · NEW</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="mux-tdm">TDM</div>
+    <div class="tab" data-tab="mux-fdm">FDM</div>
+    <div class="tab" data-tab="mux-info">Overview</div>
+  </div>
+
+  <div class="tab-content active" id="mux-tdm">
+    <div class="card">
+      <div class="card-title">TIME DIVISION MULTIPLEXING</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Number of Channels</div>
+          <select id="tdm-ch"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div>
+        <div class="ctrl-group"><div class="ctrl-label">Bits per Channel</div><input type="number" id="tdm-bits" value="4" min="2" max="8"/></div>
+      </div>
+      <div id="tdm-inputs" class="mb8"></div>
+      <button class="btn btn-primary" onclick="tdmSimulate()">▶ MULTIPLEX</button>
+      <button class="btn btn-ghost btn-sm" onclick="tdmBuild()">REBUILD INPUTS</button>
+    </div>
+    <div class="card">
+      <div class="card-title">TDM FRAME VISUALIZATION</div>
+      <div class="osc-wrap"><canvas id="tdmCanvas" height="200"></canvas></div>
+      <div class="output-box mt8 scrollable" id="tdm-frame">Run to see TDM frame</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="mux-fdm">
+    <div class="card">
+      <div class="card-title">FREQUENCY DIVISION MULTIPLEXING</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Number of Channels</div>
+          <select id="fdm-ch"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div>
+        <div class="ctrl-group"><div class="ctrl-label">Guard Band (Hz)</div><input type="number" id="fdm-guard" value="2" min="0"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="fdmSimulate()">▶ SIMULATE</button>
+    </div>
+    <div class="card">
+      <div class="card-title">FDM FREQUENCY SPECTRUM</div>
+      <div class="osc-wrap"><canvas id="fdmCanvas" height="220"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="mux-info">
+    <div class="card"><div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>TDM (Time Division Multiplexing):</b> Multiple channels share the same medium by taking turns in time slots. Each channel gets a fixed slot in a repeating frame.<br><br>
+        <b>FDM (Frequency Division Multiplexing):</b> Channels share the medium simultaneously but use different frequency bands. Guard bands prevent interference.<br><br>
+        <b>OFDM</b> (Orthogonal FDM) is used in Wi-Fi and LTE — subcarriers are spaced so they don't interfere.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AWGN & BER ══ -->
+<div class="page" id="page-awgn">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,79,123,0.15);" data-icon="awgn"></div>
+    <div><div class="page-title">AWGN Channel & BER Analysis</div><div class="page-desc">NOISE SIMULATION & BIT ERROR RATE CURVES · NEW</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="awgn-sim">Noise Simulator</div>
+    <div class="tab" data-tab="awgn-ber">BER Curves</div>
+    <div class="tab" data-tab="awgn-info">Overview</div>
+  </div>
+
+  <div class="tab-content active" id="awgn-sim">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">SNR</div><div class="metric-val b" id="awgn-snr-disp">20 dB</div></div>
+      <div class="metric"><div class="metric-label">Noise Power</div><div class="metric-val r" id="awgn-np-disp">0.01</div></div>
+      <div class="metric"><div class="metric-label">Bit Errors</div><div class="metric-val y" id="awgn-err-disp">0</div></div>
+      <div class="metric"><div class="metric-label">BER</div><div class="metric-val p" id="awgn-ber-disp">0.000</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CHANNEL PARAMETERS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group"><div class="ctrl-label">Modulation</div>
+          <select id="awgn-mod"><option>BPSK</option><option>QPSK</option><option>ASK (OOK)</option><option>FSK</option></select></div>
+        <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="awgn-bits" value="10110010110010"/></div>
+        <div class="ctrl-group"><div class="ctrl-label">SNR (dB)</div>
+          <input type="range" id="awgn-snr" min="-5" max="30" value="20" oninput="awgnUpdate()"/>
+          <span id="awgn-snr-v" style="font-size:11px;color:var(--neon-b)">20 dB</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="awgnSimulate()">▶ SIMULATE</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCanvas('awgnCanvas','awgn.png')">⬇ PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">SIGNAL WITH NOISE</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Clean Signal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-r)"></div>Noisy Signal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-g)"></div>Detected Bits</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="awgnCanvas" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SPECTRUM (FFT)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-b)"></div>Clean Spectrum</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--neon-r)"></div>Noisy Spectrum</div>
+      </div>
+      <div class="osc-wrap mt8"><canvas id="awgnSpecCleanCanvas" height="130"></canvas></div>
+      <div class="osc-wrap mt8"><canvas id="awgnSpecNoisyCanvas" height="130"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="awgn-ber">
+    <div class="card">
+      <div class="card-title">BER vs SNR CURVES</div>
+      <div class="ctrl-group mb8"><div class="ctrl-label">Show Curves For:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ber-bpsk" checked/> <span style="color:var(--neon-g)">BPSK/QPSK</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ber-ask" checked/> <span style="color:var(--neon-y)">ASK (OOK)</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ber-fsk" checked/> <span style="color:var(--neon-b)">FSK</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ber-16qam"/> <span style="color:var(--neon-p)">16-QAM</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ber-64qam"/> <span style="color:var(--neon-o)">64-QAM</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ber-256qam"/> <span style="color:var(--neon-r)">256-QAM</span></label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="drawBER()">▶ PLOT BER CURVES</button>
+    </div>
+    <div class="card">
+      <div class="osc-wrap"><canvas id="berCanvas" height="300"></canvas></div>
+      <div class="ber-info">Lower BER = fewer errors. BPSK/QPSK are the most noise-resistant per bit.</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="awgn-info">
+    <div class="card"><div class="card-title">OVERVIEW</div>
+      <div class="info-box">
+        <b>AWGN (Additive White Gaussian Noise)</b> is the standard channel model in communications.<br><br>
+        • "Additive" — noise adds to the signal<br>
+        • "White" — equal power at all frequencies<br>
+        • "Gaussian" — amplitude follows a normal distribution<br><br>
+        <b>SNR (Signal-to-Noise Ratio):</b> Ratio of signal power to noise power, usually in dB.<br>
+        SNR_dB = 10·log₁₀(P_signal / P_noise)<br><br>
+        <b>BER (Bit Error Rate):</b> Fraction of bits received incorrectly.<br>
+        For BPSK: BER = Q(√(2·Eb/N0))
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMPARE ══ -->
+<div class="page" id="page-compare">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(255,196,64,0.15);" data-icon="compare"></div>
+    <div><div class="page-title">Side-by-Side Comparison</div><div class="page-desc">COMPARE ANY TWO MODULATION SCHEMES</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">COMPARISON SETUP</div>
+    <div class="ctrl-grid">
+      <div class="ctrl-group"><div class="ctrl-label">Bitstream</div><input type="text" id="cmp-bits" value="10110100"/></div>
+      <div class="ctrl-group"><div class="ctrl-label">Scheme A</div>
+        <select id="cmp-a">
+          <option>ASK</option><option selected>BPSK</option><option>FSK</option>
+          <option>QPSK</option><option>Manchester</option><option>NRZ-L (Bipolar)</option>
+        </select></div>
+      <div class="ctrl-group"><div class="ctrl-label">Scheme B</div>
+        <select id="cmp-b">
+          <option>ASK</option><option>BPSK</option><option>FSK</option>
+          <option selected>QPSK</option><option>Manchester</option><option>NRZ-L (Bipolar)</option>
+        </select></div>
+      <div class="ctrl-group"><div class="ctrl-label">Carrier Freq</div><input type="number" id="cmp-fc" value="8"/></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="cmpSimulate()">▶ COMPARE</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCanvas('cmpCanvasA','compare-A.png')">⬇ PNG A</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCanvas('cmpCanvasB','compare-B.png')">⬇ PNG B</button>
+    </div>
+  </div>
+  <div class="compare-grid">
+    <div class="card">
+      <div class="compare-label" id="cmp-label-a">SCHEME A</div>
+      <div class="osc-wrap"><canvas id="cmpCanvasA" height="180"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="compare-label" id="cmp-label-b" style="color:var(--neon-p)">SCHEME B</div>
+      <div class="osc-wrap"><canvas id="cmpCanvasB" height="180"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div class="page" id="page-quiz">
+  <div class="page-header">
+    <div class="page-icon" style="background:rgba(0,229,160,0.15);" data-icon="quiz"></div>
+    <div><div class="page-title">Quiz Mode</div><div class="page-desc">TEST YOUR KNOWLEDGE — AUTO-GRADED</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">QUIZ SETTINGS</div>
+    <div class="ctrl-grid">
+      <div class="ctrl-group"><div class="ctrl-label">Topic</div>
+        <select id="quiz-topic">
+          <option>All Topics</option>
+          <option>Character Coding</option>
+          <option>PCM & Sampling</option>
+          <option>Line Coding</option>
+          <option>Digital Modulation</option>
+          <option>Error Detection</option>
+          <option>Multiplexing</option>
+        </select></div>
+      <div class="ctrl-group"><div class="ctrl-label">Number of Questions</div>
+        <select id="quiz-count"><option>5</option><option selected>10</option><option>15</option></select></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="quizStart()">▶ START QUIZ</button>
+      <button class="btn btn-ghost btn-sm" onclick="quizReset()">RESET</button>
+    </div>
+  </div>
+  <div id="quiz-area"></div>
+  <div id="quiz-score-area"></div>
+</div>
+
+</main>
+</div>
+
+</div><!-- /#appRoot -->
+
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/plotting.js"></script>
+<script src="js/charcode.js"></script>
+<script src="js/pcm.js"></script>
+<script src="js/linecode.js"></script>
+<script src="js/modulation.js"></script>
+<script src="js/edc.js"></script>
+<script src="js/mux.js"></script>
+<script src="js/awgn.js"></script>
+<script src="js/compare.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

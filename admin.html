@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MoDCoMSiM Admin – Modulation and Coding Techniques Simulator</title>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<div id="appRoot">
+<header>
+  <div class="logo">
+    <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="logo-icon">C2</div>
+    <div>
+      <div class="logo-text">MoDCoMSiM <span style="color:var(--neon-p, #c97bff);">ADMIN</span></div>
+      <div class="logo-sub">MODULATION & CODING TECHNIQUES SIMULATOR</div>
+    </div>
+  </div>
+  <div class="hdr-controls">
+    <div class="textsize-grp" title="Text size">
+      <button onclick="changeTextSize(-1)" aria-label="Decrease text size">A−</button>
+      <button onclick="changeTextSize(1)" aria-label="Increase text size">A+</button>
+    </div>
+    <button class="hdr-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light/dark mode">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      <span id="themeLabel">DARK</span>
+    </button>
+    <div class="mode-pill admin" id="modePill" onclick="toggleAdminMode()" title="Preview Student mode; click to switch back">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z"/></svg>
+      <span id="modeLabel">ADMIN</span>
+    </div>
+    <div class="hdr-user" id="hdrUser">
+      <div class="hdr-user-avatar" id="hdrUserAvatar">?</div>
+      <div>
+        <div class="hdr-user-name" id="hdrUserName">—</div>
+        <div class="hdr-user-role" id="hdrUserRole">—</div>
+      </div>
+      <button class="hdr-btn" id="logoutBtn" onclick="handleLogout()" title="Sign out">⏻</button>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="hdrStatus">READY</span>
+    &nbsp;|&nbsp;
+    <span id="hdrTime">--:--:--</span>
+  </div>
+</header>
+
+<div id="navScrim" class="nav-scrim"></div>
+
+<div class="app">
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav id="mainNav">
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" data-page="home">
+      <div class="nav-dot"></div>Dashboard
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Manage</div>
+    <div class="nav-item" data-page="quiz-manage">
+      <div class="nav-dot"></div>Quiz Bank
+    </div>
+    <div class="nav-item" data-page="modules-manage">
+      <div class="nav-dot"></div>Modules
+    </div>
+    <div class="nav-item" data-page="activity">
+      <div class="nav-dot"></div>Student Activity
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">System</div>
+    <div class="nav-item" data-page="settings">
+      <div class="nav-dot"></div>Settings
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main>
+
+<!-- ══ HOME ══ -->
+<div class="page active" id="page-home">
+  <div class="home-hero">
+    <div class="home-title">MoDCoMSiM Admin</div>
+    <div class="home-sub">Administration Panel</div>
+  </div>
+  <div class="module-grid">
+    <div class="module-card" onclick="nav('quiz-manage')">
+      <div class="module-name">QUIZ BANK</div>
+      <div class="module-desc">Manage quiz questions shown to students in Quiz Mode.</div>
+    </div>
+    <div class="module-card" onclick="nav('modules-manage')">
+      <div class="module-name">MODULES</div>
+      <div class="module-desc">Enable, disable, or configure simulator modules.</div>
+    </div>
+    <div class="module-card" onclick="nav('activity')">
+      <div class="module-name">STUDENT ACTIVITY</div>
+      <div class="module-desc">Review student usage and quiz results.</div>
+    </div>
+    <div class="module-card" onclick="nav('settings')">
+      <div class="module-name">SETTINGS</div>
+      <div class="module-desc">General admin panel configuration.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUIZ BANK ══ -->
+<div class="page" id="page-quiz-manage">
+
+  <!-- ── QUIZ LIST VIEW ── -->
+  <div id="quiz-list-view">
+    <div class="card">
+      <div class="card-title">Quiz Bank</div>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px;">Create and manage custom quizzes. Only Published quizzes are visible to students.</p>
+      <button class="btn btn-primary" onclick="qmCreateQuiz()">+ CREATE QUIZ</button>
+    </div>
+    <div id="qm-quiz-cards"></div>
+  </div>
+
+  <!-- ── QUIZ EDITOR VIEW ── -->
+  <div id="quiz-editor-view" style="display:none;">
+    <button class="btn btn-ghost btn-sm" onclick="qmShowList()">◀ BACK TO QUIZ BANK</button>
+
+    <div class="card mt8">
+      <div class="card-title">QUIZ DETAILS</div>
+      <div class="ctrl-grid">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Quiz Title</div>
+          <input type="text" id="qm-title" placeholder="e.g. PCM Midterm Review" oninput="qmSaveMeta()"/>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Assigned Module</div>
+          <select id="qm-module" onchange="qmSaveMeta()"></select>
+        </div>
+      </div>
+      <div class="ctrl-group mb8">
+        <div class="ctrl-label">Description</div>
+        <textarea id="qm-desc" rows="2" placeholder="Short description shown to students" oninput="qmSaveMeta()"></textarea>
+      </div>
+      <div class="btn-row" style="align-items:center;">
+        <span class="mod-badge" id="qm-status-badge">🔴 Draft</span>
+        <button class="btn btn-green btn-sm" id="qm-publish-btn" onclick="qmPublish()">PUBLISH</button>
+        <button class="btn btn-ghost btn-sm" id="qm-draft-btn" onclick="qmSaveAsDraft()">SAVE AS DRAFT</button>
+        <button class="btn btn-red btn-sm" onclick="qmDeleteCurrentQuiz()">DELETE QUIZ</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">QUESTIONS</div>
+      <div id="qm-questions-list"></div>
+      <button class="btn btn-primary btn-sm mt8" onclick="qmAddQuestion()">+ ADD QUESTION</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ MODULES ══ -->
+<div class="page" id="page-modules-manage">
+  <div class="card">
+    <div class="card-title">Modules</div>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px;">Enable or disable simulator modules. Disabled modules are hidden from the Student page immediately and after refresh.</p>
+    <div id="modules-list"></div>
+  </div>
+</div>
+
+<!-- ══ STUDENT ACTIVITY ══ -->
+<div class="page" id="page-activity">
+  <div class="card">
+    <div class="card-title">Student Activity</div>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px;">Track each student's module progress and quiz results.</p>
+    <div id="student-progress-list"></div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="card-title">Settings</div>
+    <p style="color:var(--text-dim);font-size:13px;">Placeholder — admin panel settings will go here.</p>
+  </div>
+</div>
+
+</main>
+</div>
+
+</div><!-- /#appRoot -->
+
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/modules.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/studentprogress.js"></script>
+<script src="js/quizdata.js"></script>
+<script src="js/quizmanage.js"></script>
+<script>
+requireSession('admin'); // students get bounced to student.html; admins proceed
+
+// ═══════════════════════════════════════
+// MODULE ENABLE/DISABLE (Admin controls)
+// ═══════════════════════════════════════
+function renderModulesList(){
+  const list=document.getElementById('modules-list');
+  if(!list)return;
+  list.innerHTML=MODULES.map(m=>{
+    const enabled=isModuleEnabled(m.id);
+    return '<div class="modrow">'
+      +'<div class="modrow-name">'+m.name+'</div>'
+      +'<div class="modrow-right">'
+        +'<span class="mod-badge '+(enabled?'on':'off')+'" id="mod-badge-'+m.id+'">'+(enabled?'🟢 Enabled':'🔴 Disabled')+'</span>'
+        +'<label class="mod-switch">'
+          +'<input type="checkbox" '+(enabled?'checked':'')+' onchange="onModuleToggle(\''+m.id+'\',this.checked)"/>'
+          +'<span class="mod-switch-track"></span>'
+        +'</label>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+function onModuleToggle(id,enabled){
+  setModuleEnabled(id,enabled);
+  const badge=document.getElementById('mod-badge-'+id);
+  if(badge){
+    badge.className='mod-badge '+(enabled?'on':'off');
+    badge.textContent=enabled?'🟢 Enabled':'🔴 Disabled';
+  }
+}
+renderModulesList();
+</script>
+</body>
+</html>

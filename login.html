@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MoDCoMSiM – Sign In</title>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ═══════════ AUTH SCREEN (Sign In) ═══════════ -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div>
+        <div class="auth-logo">
+          <div class="logo-icon">C2</div>
+          <div>
+            <div class="auth-logo-text">MoDCoMSiM</div>
+            <div class="auth-logo-sub">MODULATION & CODING TECHNIQUES SIMULATOR</div>
+          </div>
+        </div>
+        <div class="auth-tagline" style="margin-top:28px;">Interactive labs for <span>digital communications</span>, built for the classroom.</div>
+      </div>
+      <div class="auth-features">
+        <div class="auth-feature"><div class="dot"></div>Live oscilloscope-style waveform rendering for every modulation & coding scheme</div>
+        <div class="auth-feature"><div class="dot"></div>Student accounts track progress; Admin accounts manage the module set</div>
+        <div class="auth-feature"><div class="dot"></div>Character coding, PCM, line coding, ASK/FSK/BPSK/QPSK/QAM, AWGN & BER, and more</div>
+      </div>
+      <div class="auth-scope">© MoDCoMSiM · Accounts stored locally in this browser</div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-tabs">
+        <a class="auth-tab active" href="login.html" id="tabLoginBtn">SIGN IN</a>
+        <a class="auth-tab" href="signup.html" id="tabSignupBtn">SIGN UP</a>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form class="auth-form active" id="loginForm" onsubmit="return handleLogin(event)">
+        <div>
+          <div class="auth-h">Welcome back</div>
+          <div class="auth-sub">Sign in to continue your session.</div>
+        </div>
+        <div class="auth-msg" id="loginMsg"></div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="text" id="loginEmail" placeholder="you@school.edu" autocomplete="username"/>
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <div class="auth-pw-toggle">
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+            <span class="auth-pw-eye" onclick="togglePw('loginPassword',this)">SHOW</span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">SIGN IN →</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+</body>
+</html>
